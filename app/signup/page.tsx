@@ -41,25 +41,36 @@ export default function SignUp() {
         password,
         options: { data: { username, age: ageNum } },
       })
-      if (authError) throw authError
 
-      // Create profile with placeholder location (user sets it in profile)
-      if (data.user) {
-        await supabase.from('profiles').insert({
-          id: data.user.id,
-          user_id: data.user.id,
-          username,
-          age: ageNum,
-          latitude: 0,
-          longitude: 0,
-          search_radius_km: 50,
-        })
+      if (authError) throw authError
+      if (!data.user) throw new Error('No user returned from signup')
+
+      const { error: profileError } = await supabase.from('profiles').upsert({
+        id: data.user.id,
+        user_id: data.user.id,
+        username,
+        age: ageNum,
+        latitude: 0,
+        longitude: 0,
+        search_radius_km: 50,
+      }, { onConflict: 'user_id' })
+
+      if (profileError) {
+        console.error('Profile error:', profileError.message)
       }
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (signInError) throw signInError
 
       router.push('/home')
       router.refresh()
     } catch (err: any) {
-      setError(err.message || 'Failed to sign up')
+      console.error('Signup error:', err)
+      setError(err.message || 'Failed to sign up. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -80,55 +91,27 @@ export default function SignUp() {
           JOIN THE SWAP
         </h2>
         <form onSubmit={handleSignUp} className="flex flex-col gap-4">
-          <Input
-            label="Username"
-            type="text"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            placeholder="collector123"
-            required
-          />
-          <Input
-            label="Age"
-            type="number"
-            value={age}
-            onChange={e => setAge(e.target.value)}
-            placeholder="Your age"
-            min="5"
-            max="120"
-            required
-          />
-          <Input
-            label="Email"
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            required
-          />
-          <Input
-            label="Password"
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="At least 6 characters"
-            minLength={6}
-            required
-          />
+          <Input label="Username" type="text" value={username}
+            onChange={e => setUsername(e.target.value)} placeholder="collector123" required />
+          <Input label="Age" type="number" value={age}
+            onChange={e => setAge(e.target.value)} placeholder="Your age" min="5" max="120" required />
+          <Input label="Email" type="email" value={email}
+            onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
+          <Input label="Password" type="password" value={password}
+            onChange={e => setPassword(e.target.value)} placeholder="At least 6 characters" minLength={6} required />
           {error && (
             <div className="p-3 rounded-xl text-sm" style={{ background: '#FEE2E2', color: '#991B1B' }}>
               {error}
             </div>
           )}
-          <Button type="submit" variant="primary" size="lg" loading={loading} className="w-full mt-2" style={{ fontFamily: 'var(--font-display)', letterSpacing: '0.05em', fontSize: '1.2rem' }}>
+          <Button type="submit" variant="primary" size="lg" loading={loading} className="w-full mt-2"
+            style={{ fontFamily: 'var(--font-display)', letterSpacing: '0.05em', fontSize: '1.2rem' }}>
             {loading ? '' : 'CREATE ACCOUNT'}
           </Button>
         </form>
         <p className="text-center mt-5 text-sm" style={{ color: 'var(--text-muted)' }}>
           Already a member?{' '}
-          <Link href="/login" style={{ color: 'var(--primary)', fontWeight: 700 }}>
-            Log In
-          </Link>
+          <Link href="/login" style={{ color: 'var(--primary)', fontWeight: 700 }}>Log In</Link>
         </p>
       </div>
     </div>
