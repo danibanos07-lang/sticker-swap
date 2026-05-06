@@ -1,6 +1,6 @@
 'use client'
 export const dynamic = 'force-dynamic'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/Button'
@@ -28,7 +28,7 @@ interface StickerStats {
 export default function UserProfilePage() {
   const { id: targetUserId } = useParams<{ id: string }>()
   const router = useRouter()
-  const supabase = createClient()
+  const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null)
 
   const [myId, setMyId] = useState('')
   const [profile, setProfile] = useState<UserProfileData | null>(null)
@@ -39,6 +39,8 @@ export default function UserProfilePage() {
   const [startingTrade, setStartingTrade] = useState(false)
 
   useEffect(() => {
+    supabaseRef.current = createClient()
+    const supabase = supabaseRef.current
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
@@ -89,8 +91,9 @@ export default function UserProfilePage() {
   }, [targetUserId])
 
   const startTrade = async () => {
-    if (!myId) return
+    if (!myId || !supabaseRef.current) return
     setStartingTrade(true)
+    const supabase = supabaseRef.current
     const { data } = await supabase
       .from('trades')
       .insert({ initiator_id: myId, responder_id: targetUserId, initiator_sticker_number: 0, responder_sticker_number: 0 })
