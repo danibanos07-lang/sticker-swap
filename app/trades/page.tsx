@@ -39,7 +39,7 @@ export default function Trades() {
       if (!rawTrades) { setLoading(false); return }
 
       // Fetch other user usernames
-      const otherIds = rawTrades.map(t => t.initiator_id === user.id ? t.responder_id : t.initiator_id)
+      const otherIds = rawTrades.map((t: any) => t.initiator_id === user.id ? t.responder_id : t.initiator_id)
       const uniqueIds = [...new Set(otherIds)]
       const { data: profiles } = await supabase.from('profiles').select('user_id, username').in('user_id', uniqueIds)
 

@@ -73,7 +73,7 @@ export default function TradePage() {
     const channel = supabase
       .channel(`trade-${id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `trade_id=eq.${id}` },
-        async (payload) => {
+        async (payload: any) => {
           const m = payload.new as any
           const { data: p } = await supabase.from('profiles').select('username').eq('user_id', m.sender_id).single()
           setMessages(prev => [...prev, { ...m, sender_username: p?.username || 'User' }])

@@ -79,7 +79,7 @@ export default function ConversationPage() {
           schema: 'public',
           table: 'direct_messages',
         },
-        async (payload) => {
+        async (payload: any) => {
           const m = payload.new as DirectMessage
           const { data: { user } } = await supabase.auth.getUser()
           if (!user) return
