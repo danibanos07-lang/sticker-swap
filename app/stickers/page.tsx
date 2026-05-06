@@ -28,7 +28,6 @@ export default function Stickers() {
 
   // Add form
   const [addNum, setAddNum] = useState('')
-  const [addName, setAddName] = useState('')
   const [addTeam, setAddTeam] = useState<WC2026Team>('Argentina')
   const [addStatus, setAddStatus] = useState<'have' | 'need' | 'have_duplicate'>('have')
   const [adding, setAdding] = useState(false)
@@ -38,7 +37,7 @@ export default function Stickers() {
   // Batch add
   const [batchNums, setBatchNums] = useState('')
   const [batchTeam, setBatchTeam] = useState<WC2026Team>('Argentina')
-  const [batchStatus, setBatchStatus] = useState<'have' | 'need'>('have')
+  const [batchStatus, setBatchStatus] = useState<'have' | 'need' | 'have_duplicate'>('have')
   const [batching, setBatching] = useState(false)
 
   const supabase = createClient()
@@ -78,13 +77,13 @@ export default function Stickers() {
     const existing = stickers.find(s => s.sticker_number === num && s.team === addTeam)
     let err
     if (existing) {
-      const res = await supabase.from('user_stickers').update({ status: addStatus, sticker_name: addName || existing.sticker_name, team: addTeam }).eq('id', existing.id)
+      const res = await supabase.from('user_stickers').update({ status: addStatus, team: addTeam }).eq('id', existing.id)
       err = res.error
     } else {
       const res = await supabase.from('user_stickers').insert({
         user_id: user.id,
         sticker_number: num,
-        sticker_name: addName || `Sticker #${num}`,
+        sticker_name: `${addTeam} #${num}`,
         team: addTeam,
         status: addStatus,
       })
@@ -92,7 +91,7 @@ export default function Stickers() {
     }
 
     if (err) { setAddError(err.message); setAdding(false); return }
-    setAddNum(''); setAddName(''); setAddSuccess(true)
+    setAddNum(''); setAddSuccess(true)
     setTimeout(() => setAddSuccess(false), 2000)
     await load()
     setAdding(false)
@@ -166,11 +165,10 @@ export default function Stickers() {
               ADD SINGLE STICKER
             </h3>
             <form onSubmit={handleAdd} className="flex flex-col gap-3">
-              <Input label="Sticker Number *" type="number" value={addNum} onChange={e => setAddNum(e.target.value)} placeholder="e.g. 42" min="1" max="999" />
-              <Input label="Player / Card Name" type="text" value={addName} onChange={e => setAddName(e.target.value)} placeholder="e.g. Lionel Messi" />
               <Select label="Team" value={addTeam} onChange={e => setAddTeam(e.target.value as WC2026Team)}>
                 {WC2026_TEAMS.map(t => <option key={t} value={t}>{t}</option>)}
               </Select>
+              <Input label="Sticker Number *" type="number" value={addNum} onChange={e => setAddNum(e.target.value)} placeholder="e.g. 3" min="1" max="999" />
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>Status</label>
                 <div className="flex gap-2">
@@ -215,7 +213,7 @@ export default function Stickers() {
                 placeholder="1, 5, 12, 34, 67..."
               />
               <div className="flex gap-2">
-                {(['have', 'need'] as const).map(s => (
+                {(['have', 'need', 'have_duplicate'] as const).map(s => (
                   <button
                     key={s}
                     onClick={() => setBatchStatus(s)}
@@ -225,7 +223,7 @@ export default function Stickers() {
                       color: batchStatus === s ? 'white' : 'var(--text-muted)',
                     }}
                   >
-                    {s === 'have' ? '✅ I Have These' : '❓ I Need These'}
+                    {s === 'have' ? '✅ Have' : s === 'need' ? '❓ Need' : '⭐ Dupe'}
                   </button>
                 ))}
               </div>
