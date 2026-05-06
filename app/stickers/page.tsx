@@ -37,6 +37,7 @@ export default function Stickers() {
 
   // Batch add
   const [batchNums, setBatchNums] = useState('')
+  const [batchTeam, setBatchTeam] = useState<WC2026Team>('Argentina')
   const [batchStatus, setBatchStatus] = useState<'have' | 'need'>('have')
   const [batching, setBatching] = useState(false)
 
@@ -74,7 +75,7 @@ export default function Stickers() {
 
     const num = parseInt(addNum)
     // Check if already exists → update status
-    const existing = stickers.find(s => s.sticker_number === num)
+    const existing = stickers.find(s => s.sticker_number === num && s.team === addTeam)
     let err
     if (existing) {
       const res = await supabase.from('user_stickers').update({ status: addStatus, sticker_name: addName || existing.sticker_name, team: addTeam }).eq('id', existing.id)
@@ -107,12 +108,12 @@ export default function Stickers() {
     const rows = nums.map(n => ({
       user_id: user.id,
       sticker_number: n,
-      sticker_name: `Sticker #${n}`,
-      team: 'FIFA Stars',
+      sticker_name: `${batchTeam} #${n}`,
+      team: batchTeam,
       status: batchStatus,
     }))
 
-    await supabase.from('user_stickers').upsert(rows, { onConflict: 'user_id,sticker_number' })
+    await supabase.from('user_stickers').upsert(rows, { onConflict: 'user_id,team,sticker_number' })
     setBatchNums('')
     await load()
     setBatching(false)
@@ -204,6 +205,9 @@ export default function Stickers() {
             </h3>
             <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>Enter multiple sticker numbers separated by commas</p>
             <div className="flex flex-col gap-3">
+              <Select label="Team" value={batchTeam} onChange={e => setBatchTeam(e.target.value as WC2026Team)}>
+                {WC2026_TEAMS.map(t => <option key={t} value={t}>{t}</option>)}
+              </Select>
               <Input
                 label="Sticker Numbers"
                 value={batchNums}
