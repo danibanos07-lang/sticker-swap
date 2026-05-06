@@ -1,7 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -12,7 +12,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const router = useRouter()
+
   const supabase = createClient()
 
   useEffect(() => {
