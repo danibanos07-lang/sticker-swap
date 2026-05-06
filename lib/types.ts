@@ -71,6 +71,14 @@ export interface DirectMessage {
   sender_username?: string
 }
 
+export interface FriendRequest {
+  id: string
+  sender_id: string
+  receiver_id: string
+  status: 'pending' | 'accepted' | 'rejected'
+  created_at: string
+}
+
 export interface ConversationPreview {
   userId: string
   username: string
