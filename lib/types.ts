@@ -42,12 +42,59 @@ export interface Message {
   sender?: { username: string }
 }
 
+// Direct messaging between users (independent of trades)
+// SQL migration needed:
+// CREATE TABLE direct_messages (
+//   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+//   sender_id UUID NOT NULL REFERENCES auth.users(id),
+//   receiver_id UUID NOT NULL REFERENCES auth.users(id),
+//   content TEXT NOT NULL,
+//   created_at TIMESTAMPTZ DEFAULT now(),
+//   read BOOLEAN DEFAULT false
+// );
+// CREATE INDEX ON direct_messages(receiver_id, read);
+// CREATE INDEX ON direct_messages(sender_id, receiver_id, created_at);
+// ALTER TABLE direct_messages ENABLE ROW LEVEL SECURITY;
+// CREATE POLICY "Users can read their own messages" ON direct_messages
+//   FOR SELECT USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
+// CREATE POLICY "Users can send messages" ON direct_messages
+//   FOR INSERT WITH CHECK (auth.uid() = sender_id);
+// CREATE POLICY "Receivers can mark read" ON direct_messages
+//   FOR UPDATE USING (auth.uid() = receiver_id);
+export interface DirectMessage {
+  id: string
+  sender_id: string
+  receiver_id: string
+  content: string
+  created_at: string
+  read: boolean
+  sender_username?: string
+}
+
+export interface ConversationPreview {
+  userId: string
+  username: string
+  lastMessage: string
+  lastMessageAt: string
+  unreadCount: number
+}
+
+// Match score between two users based on sticker overlap
+export interface MatchScore {
+  canGive: number      // stickers current user can give to the other
+  canReceive: number   // stickers current user can receive from the other
+  totalMatches: number // canGive + canReceive
+  percentage: number   // (totalMatches / max_possible) * 100
+}
+
 export interface MatchResult {
   profile: Profile
   distance_km: number
   match_score: number
   match_label: string
   common_needs: number
+  // Extended match info (populated by matching-algorithm.ts)
+  stickerMatchScore?: MatchScore
 }
 
 // WC 2026 Teams

@@ -183,26 +183,54 @@ export default function Profile() {
                 : '📍 Location not set — needed to find traders near you'}
             </p>
             <div className="mb-4">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Search radius</span>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>Search Radius</span>
                 <span className="font-bold" style={{ color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>{profile.search_radius_km} km</span>
               </div>
-              <input
-                type="range"
-                min={5}
-                max={200}
-                step={5}
-                value={profile.search_radius_km}
-                onChange={e => setProfile(p => ({ ...p, search_radius_km: parseInt(e.target.value) }))}
-              />
+              {/* Dropdown radius selector — options: 1, 2, 5, 10, 20 km (and legacy values kept) */}
+              <div className="grid grid-cols-5 gap-1">
+                {[1, 2, 5, 10, 20].map(km => (
+                  <button
+                    key={km}
+                    type="button"
+                    onClick={() => setProfile(p => ({ ...p, search_radius_km: km }))}
+                    className="py-2 rounded-xl text-sm font-bold transition-all"
+                    style={{
+                      background: profile.search_radius_km === km ? 'var(--primary)' : 'var(--border)',
+                      color: profile.search_radius_km === km ? 'white' : 'var(--text-muted)',
+                      fontFamily: 'var(--font-display)',
+                    }}
+                  >
+                    {km}km
+                  </button>
+                ))}
+              </div>
+              {/* If the stored value is not one of the preset options, also show it */}
+              {![1, 2, 5, 10, 20].includes(profile.search_radius_km) && profile.search_radius_km > 0 && (
+                <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
+                  Current: {profile.search_radius_km} km — select a preset above to change
+                </p>
+              )}
             </div>
             <Button variant="secondary" size="md" onClick={handleSetLocation} loading={locating} className="w-full">
               {locating ? '' : '📍 Update My Location'}
             </Button>
           </div>
 
-          {/* Logout */}
+          {/* Messages shortcut */}
           <div className="card p-4 fade-up fade-up-delay-3">
+            <a href="/profile/messages" className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: 'var(--border)' }}>💬</div>
+              <div className="flex-1">
+                <p className="font-bold text-sm" style={{ color: 'var(--text)', fontFamily: 'var(--font-display)' }}>DIRECT MESSAGES</p>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Chat with other collectors</p>
+              </div>
+              <span style={{ color: 'var(--text-muted)' }}>→</span>
+            </a>
+          </div>
+
+          {/* Logout */}
+          <div className="card p-4 fade-up fade-up-delay-4">
             <Button variant="outline" size="md" onClick={handleLogout} className="w-full">
               🚪 Log Out
             </Button>

@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { createClient } from '@/lib/supabase/client'
 import { buildMatchResults } from '@/lib/matching'
+import { calculateDistance } from '@/lib/matching-algorithm'
 import { Profile, MatchResult } from '@/lib/types'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function Discover() {
   const [matches, setMatches] = useState<MatchResult[]>([])
@@ -162,41 +164,67 @@ export default function Discover() {
         ) : (
           <div className="flex flex-col gap-3">
             {matches.length > 0 && (
-              <p className="text-xs font-semibold" style={{ color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                {matches.length} Trader{matches.length !== 1 ? 's' : ''} Found
-              </p>
-            )}
-            {matches.map((m, i) => (
-              <div key={m.profile.user_id} className={`card p-4 fade-up fade-up-delay-${Math.min(i + 1, 4)}`}>
-                <div className="flex items-center gap-3 mb-3">
-                  {/* Avatar placeholder */}
-                  <div
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold text-white flex-shrink-0"
-                    style={{ background: `hsl(${(m.profile.username.charCodeAt(0) * 40) % 360}, 60%, 45%)` }}
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold" style={{ color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  {matches.length} Trader{matches.length !== 1 ? 's' : ''} Found
+                </p>
+                <Link href="/discover/matches">
+                  <span
+                    className="text-xs font-bold px-3 py-1.5 rounded-lg transition-all"
+                    style={{ background: 'var(--gold)', color: '#1A1A2E', fontFamily: 'var(--font-display)' }}
                   >
-                    {m.profile.username[0]?.toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold truncate" style={{ color: 'var(--text)' }}>{m.profile.username}</p>
-                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>📍 {m.distance_km} km away</p>
-                  </div>
-                  <Badge variant={m.match_score >= 70 ? 'success' : m.match_score >= 40 ? 'warning' : 'default'}>
-                    {m.match_label}
-                  </Badge>
-                </div>
-                {m.profile.bio && (
-                  <p className="text-sm mb-3 line-clamp-2" style={{ color: 'var(--text-muted)' }}>{m.profile.bio}</p>
-                )}
-                <div className="flex gap-2">
-                  <div className="flex-1 rounded-xl py-2 text-center text-xs font-bold" style={{ background: 'var(--border)', color: 'var(--text-muted)' }}>
-                    🏆 Score: {m.match_score}%
-                  </div>
-                  <Button variant="primary" size="sm" onClick={() => startTrade(m.profile.user_id)} className="flex-1">
-                    💬 Trade
-                  </Button>
-                </div>
+                    🏆 View Matches
+                  </span>
+                </Link>
               </div>
-            ))}
+            )}
+            {matches.map((m, i) => {
+              const distKm = myProfile
+                ? parseFloat(calculateDistance(
+                    myProfile.latitude, myProfile.longitude,
+                    m.profile.latitude, m.profile.longitude
+                  ).toFixed(1))
+                : m.distance_km
+              return (
+                <div key={m.profile.user_id} className={`card p-4 fade-up fade-up-delay-${Math.min(i + 1, 4)}`}>
+                  <div className="flex items-center gap-3 mb-3">
+                    {/* Avatar */}
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold text-white flex-shrink-0"
+                      style={{ background: `hsl(${(m.profile.username.charCodeAt(0) * 40) % 360}, 60%, 45%)` }}
+                    >
+                      {m.profile.username[0]?.toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold truncate" style={{ color: 'var(--text)' }}>{m.profile.username}</p>
+                      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>📍 {distKm} km away</p>
+                    </div>
+                    <Badge variant={m.match_score >= 70 ? 'success' : m.match_score >= 40 ? 'warning' : 'default'}>
+                      {m.match_label}
+                    </Badge>
+                  </div>
+                  {m.profile.bio && (
+                    <p className="text-sm mb-3 line-clamp-2" style={{ color: 'var(--text-muted)' }}>{m.profile.bio}</p>
+                  )}
+                  <div className="flex gap-2">
+                    <div className="flex-1 rounded-xl py-2 text-center text-xs font-bold" style={{ background: 'var(--border)', color: 'var(--text-muted)' }}>
+                      🏆 Score: {m.match_score}%
+                    </div>
+                    <Link href={`/profile/messages/${m.profile.user_id}`} className="flex-1">
+                      <button
+                        className="w-full py-2 px-3 rounded-xl text-xs font-bold text-white transition-all"
+                        style={{ background: 'var(--green)' }}
+                      >
+                        💬 Message
+                      </button>
+                    </Link>
+                    <Button variant="primary" size="sm" onClick={() => startTrade(m.profile.user_id)} className="flex-1">
+                      🔄 Trade
+                    </Button>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
