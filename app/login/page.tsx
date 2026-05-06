@@ -28,11 +28,15 @@ export default function Login() {
     setError('')
     try {
       if (!supabase) throw new Error('Supabase not configured. Check environment variables.')
-      const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+      console.log('Attempting login...')
+      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+      console.log('Login result:', { data, error: authError })
       if (authError) throw authError
+      console.log('Redirecting to /home...')
       router.push('/home')
       router.refresh()
     } catch (err: any) {
+      console.error('Login error:', err)
       setError(err.message || 'Failed to log in')
     } finally {
       setLoading(false)
