@@ -1,4 +1,5 @@
 'use client'
+export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { Badge } from '@/components/ui/Badge'
