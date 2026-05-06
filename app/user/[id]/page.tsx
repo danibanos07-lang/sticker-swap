@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/Button'
-import { createClient } from '@/lib/supabase/client'
 import { getUserStickerInfo, calculateMatchScore, calculateDistance } from '@/lib/matching-algorithm'
 import { MatchScore } from '@/lib/types'
 import Link from 'next/link'
@@ -28,7 +27,7 @@ interface StickerStats {
 export default function UserProfilePage() {
   const { id: targetUserId } = useParams<{ id: string }>()
   const router = useRouter()
-  const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null)
+  const supabaseRef = useRef<any>(null)
 
   const [myId, setMyId] = useState('')
   const [profile, setProfile] = useState<UserProfileData | null>(null)
@@ -39,9 +38,10 @@ export default function UserProfilePage() {
   const [startingTrade, setStartingTrade] = useState(false)
 
   useEffect(() => {
-    supabaseRef.current = createClient()
-    const supabase = supabaseRef.current
     const init = async () => {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      supabaseRef.current = supabase
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
       setMyId(user.id)
