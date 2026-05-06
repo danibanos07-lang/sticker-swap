@@ -37,6 +37,7 @@ export default function SignUp() {
     }
 
     try {
+      if (!supabase) throw new Error('Supabase not configured. Check environment variables.')
       const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
