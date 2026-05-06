@@ -56,16 +56,15 @@ export const AppShell: React.FC<AppShellProps> = ({
           </div>
         )}
         {children}
+        <footer
+          className="text-center py-3 text-xs"
+          style={{ color: 'var(--text-muted)', borderTop: '1px solid var(--border)' }}
+        >
+          Founded by Daniel Baños
+        </footer>
       </main>
 
       {showNav && <BottomNav />}
-
-      <footer
-        className="text-center py-3 text-xs"
-        style={{ color: 'var(--text-muted)', borderTop: '1px solid var(--border)' }}
-      >
-        Founded by Daniel Baños
-      </footer>
     </div>
   )
 }
