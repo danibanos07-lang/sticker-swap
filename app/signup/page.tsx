@@ -68,8 +68,7 @@ export default function SignUp() {
 
       if (signInError) throw signInError
 
-      router.push('/home')
-      router.refresh()
+      window.location.href = '/home'
     } catch (err: any) {
       console.error('Signup error:', err)
       setError(err.message || 'Failed to sign up. Please try again.')

@@ -33,8 +33,7 @@ export default function Login() {
       console.log('Login result:', { data, error: authError })
       if (authError) throw authError
       console.log('Redirecting to /home...')
-      router.push('/home')
-      router.refresh()
+      window.location.href = '/home'
     } catch (err: any) {
       console.error('Login error:', err)
       setError(err.message || 'Failed to log in')
