@@ -14,11 +14,15 @@ export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2
   return R * c
 }
 
+// Composite key: "team::sticker_number" — ensures Argentina #1 ≠ Brazil #1
+type StickerKey = string
+const stickerKey = (team: string, number: number): StickerKey => `${team}::${number}`
+
 interface UserStickerInfo {
   userId: string
-  haveNumbers: Set<number>       // stickers marked 'have' (no duplicates)
-  duplicateNumbers: Set<number>  // stickers marked 'have_duplicate'
-  needNumbers: Set<number>       // stickers marked 'need'
+  haveKeys: Set<StickerKey>
+  duplicateKeys: Set<StickerKey>
+  needKeys: Set<StickerKey>
 }
 
 // Fetch a user's sticker sets from Supabase
@@ -28,46 +32,41 @@ export async function getUserStickerInfo(
 ): Promise<UserStickerInfo> {
   const { data } = await supabase
     .from('user_stickers')
-    .select('sticker_number, status')
+    .select('sticker_number, team, status')
     .eq('user_id', userId)
 
-  const haveNumbers = new Set<number>()
-  const duplicateNumbers = new Set<number>()
-  const needNumbers = new Set<number>()
+  const haveKeys = new Set<StickerKey>()
+  const duplicateKeys = new Set<StickerKey>()
+  const needKeys = new Set<StickerKey>()
 
   for (const s of data || []) {
-    if (s.status === 'have') haveNumbers.add(s.sticker_number)
-    else if (s.status === 'have_duplicate') duplicateNumbers.add(s.sticker_number)
-    else if (s.status === 'need') needNumbers.add(s.sticker_number)
+    const key = stickerKey(s.team, s.sticker_number)
+    if (s.status === 'have') haveKeys.add(key)
+    else if (s.status === 'have_duplicate') duplicateKeys.add(key)
+    else if (s.status === 'need') needKeys.add(key)
   }
 
-  return { userId, haveNumbers, duplicateNumbers, needNumbers }
+  return { userId, haveKeys, duplicateKeys, needKeys }
 }
 
-// Calculate how many stickers two users can trade with each other
-// canGive  = stickers that userA has duplicates of AND userB needs
-// canReceive = stickers that userB has duplicates of AND userA needs
+// canGive  = stickers userA has as duplicate AND userB needs
+// canReceive = stickers userB has as duplicate AND userA needs
 export function calculateMatchScore(
   userA: UserStickerInfo,
   userB: UserStickerInfo
 ): MatchScore {
   let canGive = 0
-  for (const num of userA.duplicateNumbers) {
-    if (userB.needNumbers.has(num)) canGive++
+  for (const key of userA.duplicateKeys) {
+    if (userB.needKeys.has(key)) canGive++
   }
 
   let canReceive = 0
-  for (const num of userB.duplicateNumbers) {
-    if (userA.needNumbers.has(num)) canReceive++
+  for (const key of userB.duplicateKeys) {
+    if (userA.needKeys.has(key)) canReceive++
   }
 
   const totalMatches = canGive + canReceive
-
-  // Percentage: out of how many stickers userA needs, how many can the match satisfy (plus inverse)
-  const maxPossible = Math.max(
-    (userA.needNumbers.size + userB.needNumbers.size),
-    1
-  )
+  const maxPossible = Math.max(userA.needKeys.size + userB.needKeys.size, 1)
   const percentage = Math.min(100, Math.round((totalMatches / maxPossible) * 100))
 
   return { canGive, canReceive, totalMatches, percentage }
