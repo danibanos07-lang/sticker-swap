@@ -3,7 +3,6 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
 import { createClient } from '@/lib/supabase/client'
 import { STICKER_DATA, TEAM_NAMES, getTeamPrefix } from '@/lib/stickerData'
 import { Input } from '@/components/ui/Input'
@@ -18,17 +17,6 @@ interface UserSticker {
 
 type ActiveTab = 'all' | 'have' | 'need' | 'add'
 
-const statusColors: Record<string, 'success' | 'error' | 'warning'> = {
-  have: 'success',
-  have_duplicate: 'warning',
-  need: 'error',
-}
-
-const statusLabels: Record<string, string> = {
-  have: '✅ Have',
-  have_duplicate: '⭐ Dupe',
-  need: '❓ Need',
-}
 
 export default function Stickers() {
   const [stickers, setStickers] = useState<UserSticker[]>([])
@@ -134,6 +122,20 @@ export default function Stickers() {
     setTimeout(() => setAddSuccess(false), 2000)
     await load()
     setAdding(false)
+  }
+
+  const handleStatusChange = async (id: string, newStatus: 'have' | 'need' | 'have_duplicate') => {
+    // Optimistic update
+    setStickers(prev => prev.map(s => s.id === id ? { ...s, status: newStatus } : s))
+    const { error } = await supabase.from('user_stickers').update({ status: newStatus }).eq('id', id)
+    if (error) await load() // rollback on failure
+  }
+
+  const handleDelete = async (id: string) => {
+    // Optimistic update
+    setStickers(prev => prev.filter(s => s.id !== id))
+    const { error } = await supabase.from('user_stickers').delete().eq('id', id)
+    if (error) await load() // rollback on failure
   }
 
   const handleBatch = async () => {
@@ -405,18 +407,50 @@ export default function Stickers() {
                 const prefix = getTeamPrefix(s.team)
                 const code = prefix ? `${prefix}${s.sticker_number}` : `#${s.sticker_number}`
                 return (
-                  <div key={s.id} className="card px-4 py-3 flex items-center gap-3">
-                    <div
-                      className="w-12 h-10 rounded-xl flex items-center justify-center font-bold text-white text-xs flex-shrink-0 text-center"
-                      style={{ background: 'var(--primary)', fontFamily: 'var(--font-display)' }}
-                    >
-                      {code}
+                  <div key={s.id} className="card px-4 py-3 flex flex-col gap-2">
+                    {/* Top row: code + name + delete */}
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-12 h-10 rounded-xl flex items-center justify-center font-bold text-white text-xs flex-shrink-0 text-center"
+                        style={{ background: 'var(--primary)', fontFamily: 'var(--font-display)' }}
+                      >
+                        {code}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate" style={{ color: 'var(--text)' }}>{s.sticker_name}</p>
+                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>🏳️ {s.team}</p>
+                      </div>
+                      <button
+                        onClick={() => handleDelete(s.id)}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0 transition-all"
+                        style={{ background: 'var(--border)', color: 'var(--text-muted)' }}
+                        title="Remove sticker"
+                      >
+                        🗑
+                      </button>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm truncate" style={{ color: 'var(--text)' }}>{s.sticker_name}</p>
-                      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>🏳️ {s.team}</p>
+                    {/* Status toggle row */}
+                    <div className="flex gap-1.5">
+                      {(['have', 'need', 'have_duplicate'] as const).map(st => {
+                        const active = s.status === st
+                        const label = st === 'have' ? '✅ Have' : st === 'need' ? '❓ Need' : '⭐ Dupe'
+                        return (
+                          <button
+                            key={st}
+                            onClick={() => !active && handleStatusChange(s.id, st)}
+                            className="flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                            style={{
+                              background: active ? 'var(--primary)' : 'var(--border)',
+                              color: active ? 'white' : 'var(--text-muted)',
+                              cursor: active ? 'default' : 'pointer',
+                              fontWeight: active ? 700 : 500,
+                            }}
+                          >
+                            {label}
+                          </button>
+                        )
+                      })}
                     </div>
-                    <Badge variant={statusColors[s.status]}>{statusLabels[s.status]}</Badge>
                   </div>
                 )
               })}
