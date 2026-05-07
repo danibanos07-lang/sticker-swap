@@ -100,6 +100,17 @@ export interface MatchScore {
   percentage: number   // (totalMatches / max_possible) * 100
 }
 
+export interface StickerRecord {
+  sticker_number: number
+  team: string
+  sticker_name: string
+}
+
+export interface TradePair {
+  give: StickerRecord    // my duplicate that they need
+  receive: StickerRecord // their duplicate that I need
+}
+
 export interface MatchResult {
   profile: Profile
   distance_km: number
@@ -108,6 +119,7 @@ export interface MatchResult {
   common_needs: number
   // Extended match info (populated by matching-algorithm.ts)
   stickerMatchScore?: MatchScore
+  bestTradePair?: TradePair
 }
 
 // WC 2026 Teams

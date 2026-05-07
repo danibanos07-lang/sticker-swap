@@ -5,7 +5,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/Button'
 import { createClient } from '@/lib/supabase/client'
 import { findMatches } from '@/lib/matching-algorithm'
-import { Profile, MatchResult } from '@/lib/types'
+import { Profile, MatchResult, TradePair } from '@/lib/types'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -14,6 +14,7 @@ export default function MatchesPage() {
   const [myProfile, setMyProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [trading, setTrading] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -52,14 +53,25 @@ export default function MatchesPage() {
     init()
   }, [])
 
-  const startTrade = async (otherUserId: string) => {
+  const handleSmartTrade = async (otherUserId: string, pair: TradePair) => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+    setTrading(otherUserId)
     const { data } = await supabase
       .from('trades')
-      .insert({ initiator_id: user.id, responder_id: otherUserId, initiator_sticker_number: 0, responder_sticker_number: 0 })
+      .insert({
+        initiator_id: user.id,
+        responder_id: otherUserId,
+        initiator_sticker_number: pair.give.sticker_number,
+        initiator_sticker_team: pair.give.team,
+        initiator_sticker_name: pair.give.sticker_name,
+        responder_sticker_number: pair.receive.sticker_number,
+        responder_sticker_team: pair.receive.team,
+        responder_sticker_name: pair.receive.sticker_name,
+      })
       .select()
       .single()
+    setTrading(null)
     if (data) router.push(`/trades/${data.id}`)
   }
 
@@ -198,24 +210,64 @@ export default function MatchesPage() {
                     <p className="text-xs mb-3 line-clamp-2" style={{ color: 'var(--text-muted)' }}>{m.profile.bio}</p>
                   )}
 
+                  {/* Best trade pair preview */}
+                  {m.bestTradePair ? (
+                    <div className="rounded-xl p-3 mb-3" style={{ background: 'var(--border)' }}>
+                      <p className="text-xs font-bold mb-2" style={{ color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                        ⚡ Best Trade
+                      </p>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <span style={{ color: 'var(--primary)', fontWeight: 700, minWidth: '52px' }}>You give</span>
+                          <span className="font-semibold truncate" style={{ color: 'var(--text)' }}>
+                            {m.bestTradePair.give.team} #{m.bestTradePair.give.sticker_number} — {m.bestTradePair.give.sticker_name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <span style={{ color: 'var(--green)', fontWeight: 700, minWidth: '52px' }}>You get</span>
+                          <span className="font-semibold truncate" style={{ color: 'var(--text)' }}>
+                            {m.bestTradePair.receive.team} #{m.bestTradePair.receive.sticker_number} — {m.bestTradePair.receive.sticker_name}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl px-3 py-2 mb-3 text-xs text-center" style={{ background: 'var(--border)', color: 'var(--text-muted)' }}>
+                      No mutual stickers to trade yet
+                    </div>
+                  )}
+
                   {/* Action buttons */}
-                  <div className="flex gap-2">
-                    <Link href={`/profile/messages/${m.profile.user_id}`} className="flex-1">
-                      <button
-                        className="w-full py-2 px-3 rounded-xl text-sm font-bold text-white transition-all active:scale-95"
-                        style={{ background: 'var(--green)', fontFamily: 'var(--font-body)' }}
+                  <div className="flex flex-col gap-2">
+                    {m.bestTradePair && (
+                      <Button
+                        variant="gold"
+                        size="sm"
+                        className="w-full"
+                        loading={trading === m.profile.user_id}
+                        onClick={() => handleSmartTrade(m.profile.user_id, m.bestTradePair!)}
                       >
-                        💬 Message
-                      </button>
-                    </Link>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => startTrade(m.profile.user_id)}
-                    >
-                      🔄 Trade
-                    </Button>
+                        ⚡ Trade These
+                      </Button>
+                    )}
+                    <div className="flex gap-2">
+                      <Link href={`/profile/messages/${m.profile.user_id}`} className="flex-1">
+                        <button
+                          className="w-full py-2 px-3 rounded-xl text-xs font-bold transition-all active:scale-95"
+                          style={{ background: 'var(--border)', color: 'var(--text-muted)' }}
+                        >
+                          💬 Message
+                        </button>
+                      </Link>
+                      <Link href={`/user/${m.profile.user_id}`} className="flex-1">
+                        <button
+                          className="w-full py-2 px-3 rounded-xl text-xs font-bold transition-all active:scale-95"
+                          style={{ background: 'var(--border)', color: 'var(--text-muted)' }}
+                        >
+                          👤 Profile
+                        </button>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               )

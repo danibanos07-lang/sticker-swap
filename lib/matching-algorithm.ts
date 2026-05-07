@@ -1,4 +1,4 @@
-import { MatchScore, MatchResult, Profile } from './types'
+import { MatchScore, MatchResult, Profile, StickerRecord, TradePair } from './types'
 
 // Haversine formula — returns distance in km
 export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -23,6 +23,8 @@ interface UserStickerInfo {
   haveKeys: Set<StickerKey>
   duplicateKeys: Set<StickerKey>
   needKeys: Set<StickerKey>
+  duplicateMap: Map<StickerKey, StickerRecord>
+  needMap: Map<StickerKey, StickerRecord>
 }
 
 // Fetch a user's sticker sets from Supabase
@@ -32,21 +34,49 @@ export async function getUserStickerInfo(
 ): Promise<UserStickerInfo> {
   const { data } = await supabase
     .from('user_stickers')
-    .select('sticker_number, team, status')
+    .select('sticker_number, team, sticker_name, status')
     .eq('user_id', userId)
 
   const haveKeys = new Set<StickerKey>()
   const duplicateKeys = new Set<StickerKey>()
   const needKeys = new Set<StickerKey>()
+  const duplicateMap = new Map<StickerKey, StickerRecord>()
+  const needMap = new Map<StickerKey, StickerRecord>()
 
   for (const s of data || []) {
     const key = stickerKey(s.team, s.sticker_number)
-    if (s.status === 'have') haveKeys.add(key)
-    else if (s.status === 'have_duplicate') duplicateKeys.add(key)
-    else if (s.status === 'need') needKeys.add(key)
+    const record: StickerRecord = { sticker_number: s.sticker_number, team: s.team, sticker_name: s.sticker_name }
+    if (s.status === 'have') {
+      haveKeys.add(key)
+    } else if (s.status === 'have_duplicate') {
+      duplicateKeys.add(key)
+      duplicateMap.set(key, record)
+    } else if (s.status === 'need') {
+      needKeys.add(key)
+      needMap.set(key, record)
+    }
   }
 
-  return { userId, haveKeys, duplicateKeys, needKeys }
+  return { userId, haveKeys, duplicateKeys, needKeys, duplicateMap, needMap }
+}
+
+// Returns the single best mutual sticker pair, or null if no mutual trade exists
+export function findBestTradePair(
+  myInfo: UserStickerInfo,
+  theirInfo: UserStickerInfo
+): TradePair | null {
+  let give: StickerRecord | null = null
+  for (const [key, sticker] of myInfo.duplicateMap) {
+    if (theirInfo.needKeys.has(key)) { give = sticker; break }
+  }
+
+  let receive: StickerRecord | null = null
+  for (const [key, sticker] of theirInfo.duplicateMap) {
+    if (myInfo.needKeys.has(key)) { receive = sticker; break }
+  }
+
+  if (!give || !receive) return null
+  return { give, receive }
 }
 
 // canGive  = stickers userA has as duplicate AND userB needs
@@ -113,8 +143,7 @@ export async function findMatches(
     )
 
     const stickerMatchScore = calculateMatchScore(myInfo, otherInfos[i])
-
-    // Legacy match_score: purely distance-based 0-100 for backward compat
+    const bestTradePair = findBestTradePair(myInfo, otherInfos[i])
     const distScore = Math.max(0, Math.round(100 - (dist / radiusKm) * 100))
 
     return {
@@ -124,6 +153,7 @@ export async function findMatches(
       match_label: getMatchLabel(dist, radiusKm),
       common_needs: stickerMatchScore.totalMatches,
       stickerMatchScore,
+      bestTradePair: bestTradePair ?? undefined,
     }
   })
 
