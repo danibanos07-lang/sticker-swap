@@ -8,6 +8,7 @@ export interface Profile {
   latitude: number
   longitude: number
   search_radius_km: number
+  has_seen_tutorial: boolean
   created_at: string
   updated_at: string
 }

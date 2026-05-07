@@ -1,7 +1,9 @@
 'use client'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { BottomNav } from './BottomNav'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { OnboardingTutorial } from '@/components/tutorial/OnboardingTutorial'
+import { createClient } from '@/lib/supabase/client'
 
 interface AppShellProps {
   children: React.ReactNode
@@ -16,13 +18,37 @@ export const AppShell: React.FC<AppShellProps> = ({
   title,
   headerRight,
 }) => {
-  // Init theme on mount
+  const [showTutorial, setShowTutorial] = useState(false)
+  const supabase = createClient()
+
   useEffect(() => {
     const saved = localStorage.getItem('theme')
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     const isDark = saved === 'dark' || (!saved && prefersDark)
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light')
+
+    const checkTutorial = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('has_seen_tutorial')
+        .eq('user_id', user.id)
+        .single()
+      if (profile && !profile.has_seen_tutorial) {
+        setShowTutorial(true)
+      }
+    }
+    checkTutorial()
   }, [])
+
+  const completeTutorial = async () => {
+    setShowTutorial(false)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await supabase.from('profiles').update({ has_seen_tutorial: true }).eq('user_id', user.id)
+    }
+  }
 
   return (
     <div className="flex flex-col min-h-screen" style={{ background: 'var(--bg)' }}>
@@ -65,6 +91,7 @@ export const AppShell: React.FC<AppShellProps> = ({
       </main>
 
       {showNav && <BottomNav />}
+      {showTutorial && <OnboardingTutorial onComplete={completeTutorial} />}
     </div>
   )
 }
