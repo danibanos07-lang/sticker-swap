@@ -5,7 +5,8 @@ import { usePathname } from 'next/navigation'
 const navItems = [
   { label: 'Home', href: '/home', icon: '🏠' },
   { label: 'Album', href: '/stickers', icon: '📋' },
-  { label: 'Discover', href: '/discover', icon: '🔍' },
+  { label: 'Discover', href: '/discover', icon: '🌍' },
+  { label: 'Friends', href: '/friends', icon: '👥' },
   { label: 'Trades', href: '/trades', icon: '🔄' },
   { label: 'Profile', href: '/profile', icon: '👤' },
 ]
@@ -35,8 +36,8 @@ export const BottomNav: React.FC = () => {
               {item.icon}
             </span>
             <span
-              className="text-xs font-semibold"
-              style={{ fontFamily: 'var(--font-body)' }}
+              className="font-semibold"
+              style={{ fontFamily: 'var(--font-body)', fontSize: '0.6rem' }}
             >
               {item.label}
             </span>

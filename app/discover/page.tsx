@@ -10,15 +10,10 @@ import { calculateDistance } from '@/lib/matching-algorithm'
 import { Profile, MatchResult } from '@/lib/types'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { SearchFriend } from '@/components/discover/SearchFriend'
-
-type Tab = 'nearby' | 'search'
 
 export default function Discover() {
-  const [tab, setTab] = useState<Tab>('nearby')
   const [matches, setMatches] = useState<MatchResult[]>([])
   const [myProfile, setMyProfile] = useState<Profile | null>(null)
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [radius, setRadius] = useState(50)
   const [loading, setLoading] = useState(true)
   const [locating, setLocating] = useState(false)
@@ -43,7 +38,6 @@ export default function Discover() {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      setCurrentUserId(user.id)
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -110,34 +104,6 @@ export default function Discover() {
 
   return (
     <AppShell title="DISCOVER">
-      {/* Tabs */}
-      <div className="flex gap-1 px-4 pb-3 overflow-x-auto" style={{ borderBottom: '1px solid var(--border)' }}>
-        {([
-          { key: 'nearby', label: '📍 Nearby Traders' },
-          { key: 'search', label: '🔍 Find Friends' },
-        ] as { key: Tab; label: string }[]).map(t => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className="px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all"
-            style={{
-              background: tab === t.key ? 'var(--primary)' : 'var(--border)',
-              color: tab === t.key ? 'white' : 'var(--text-muted)',
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {tab === 'search' ? (
-        <div className="p-4">
-          {currentUserId
-            ? <SearchFriend currentUserId={currentUserId} />
-            : <div className="text-center py-12" style={{ color: 'var(--text-muted)' }}>Loading...</div>
-          }
-        </div>
-      ) : (
       <div className="p-4 flex flex-col gap-4">
         {/* Location setup */}
         {!hasLocation && (
@@ -263,7 +229,6 @@ export default function Discover() {
           </div>
         )}
       </div>
-      )}
     </AppShell>
   )
 }
