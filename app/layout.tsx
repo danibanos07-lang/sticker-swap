@@ -17,6 +17,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Apply theme before first paint to prevent flash */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var s=localStorage.getItem('theme');var d=window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',(s==='dark'||(!s&&d))?'dark':'light');}catch(e){}})();` }} />
+      </head>
       <body className={`${outfit.variable} ${fredoka.variable} ${outfit.className}`}>{children}</body>
     </html>
   )

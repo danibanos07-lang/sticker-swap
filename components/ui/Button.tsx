@@ -13,11 +13,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const base = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 select-none'
 
     const variants = {
-      primary: 'text-white shadow-md hover:shadow-lg',
-      secondary: 'text-white shadow-md hover:shadow-lg',
+      primary: 'shadow-md hover:shadow-lg',
+      secondary: 'shadow-md hover:shadow-lg',
       outline: 'border-2 bg-transparent hover:bg-opacity-10',
       ghost: 'bg-transparent',
-      gold: 'text-white shadow-md hover:shadow-lg',
+      gold: 'shadow-md hover:shadow-lg',
     }
 
     const sizes = {
@@ -27,11 +27,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     }
 
     const inlineStyles: React.CSSProperties = {
-      ...(variant === 'primary' && { background: 'var(--primary)' }),
-      ...(variant === 'secondary' && { background: 'var(--green)' }),
+      ...(variant === 'primary' && { background: 'var(--primary)', color: '#ffffff' }),
+      ...(variant === 'secondary' && { background: 'var(--green)', color: '#ffffff' }),
       ...(variant === 'outline' && { borderColor: 'var(--primary)', color: 'var(--primary)' }),
       ...(variant === 'ghost' && { color: 'var(--text-muted)' }),
-      ...(variant === 'gold' && { background: 'linear-gradient(135deg, var(--gold), var(--gold-dark))' }),
+      ...(variant === 'gold' && { background: 'linear-gradient(135deg, var(--gold), var(--gold-dark))', color: '#ffffff' }),
     }
 
     return (
