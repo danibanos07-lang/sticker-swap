@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
-import { Outfit } from 'next/font/google'
+import { Outfit, Fredoka } from 'next/font/google'
 import './globals.css'
 
-const outfit = Outfit({ subsets: ['latin'], weight: ['300','400','500','600','700','800'] })
+const outfit = Outfit({ subsets: ['latin'], weight: ['300','400','500','600','700','800'], variable: '--font-outfit' })
+const fredoka = Fredoka({ subsets: ['latin'], weight: ['400','500','600','700'], variable: '--font-fredoka' })
 
 export const metadata: Metadata = {
   title: 'StickerSwap — FIFA World Cup 2026',
@@ -16,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={outfit.className}>{children}</body>
+      <body className={`${outfit.variable} ${fredoka.variable} ${outfit.className}`}>{children}</body>
     </html>
   )
 }

@@ -5,8 +5,8 @@
 
 
 :root {
-  --font-display: 'Bebas Neue', sans-serif;
-  --font-body: 'Outfit', sans-serif;
+  --font-display: var(--font-fredoka), 'Fredoka', sans-serif;
+  --font-body: var(--font-outfit), 'Outfit', sans-serif;
 
   /* Light mode */
   --bg: #F5F3EE;
