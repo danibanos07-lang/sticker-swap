@@ -15,7 +15,11 @@ interface TradeRow {
   initiator_username: string
   responder_username: string
   initiator_sticker_number: number
+  initiator_sticker_team: string
+  initiator_sticker_name: string
   responder_sticker_number: number
+  responder_sticker_team: string
+  responder_sticker_name: string
   status: TradeStatus
   created_at: string
 }
@@ -173,8 +177,9 @@ export default function Trades() {
 
   // ── Core accept logic: validates stickers and swaps collections ──
   const doAcceptTrade = async (trade: TradeRow): Promise<string | null> => {
-    if (trade.initiator_sticker_number === 0 || trade.responder_sticker_number === 0) {
-      return 'Sticker numbers not set. Open the trade to specify what to exchange.'
+    if (!trade.initiator_sticker_team || trade.initiator_sticker_number === 0 ||
+        !trade.responder_sticker_team || trade.responder_sticker_number === 0) {
+      return 'Stickers not fully specified. Open the trade to select which stickers to exchange.'
     }
 
     const [{ data: initSticker }, { data: respSticker }] = await Promise.all([
@@ -183,6 +188,7 @@ export default function Trades() {
         .select('*')
         .eq('user_id', trade.initiator_id)
         .eq('sticker_number', trade.initiator_sticker_number)
+        .eq('team', trade.initiator_sticker_team)
         .eq('status', 'have_duplicate')
         .maybeSingle(),
       supabase
@@ -190,14 +196,15 @@ export default function Trades() {
         .select('*')
         .eq('user_id', trade.responder_id)
         .eq('sticker_number', trade.responder_sticker_number)
+        .eq('team', trade.responder_sticker_team)
         .eq('status', 'have_duplicate')
         .maybeSingle(),
     ])
 
     if (!initSticker)
-      return `${trade.initiator_username} no longer has sticker #${trade.initiator_sticker_number} as a duplicate.`
+      return `${trade.initiator_username} no longer has ${trade.initiator_sticker_team} #${trade.initiator_sticker_number} as a duplicate.`
     if (!respSticker)
-      return `You no longer have sticker #${trade.responder_sticker_number} as a duplicate.`
+      return `You no longer have ${trade.responder_sticker_team} #${trade.responder_sticker_number} as a duplicate.`
 
     // Remove both duplicates
     await Promise.all([
@@ -435,11 +442,20 @@ export default function Trades() {
 
             {displayed.map((trade, i) => {
               const iAmInitiator = trade.initiator_id === myId
-              const myOffer = iAmInitiator ? trade.initiator_sticker_number : trade.responder_sticker_number
-              const theirOffer = iAmInitiator ? trade.responder_sticker_number : trade.initiator_sticker_number
+              const myOfferNum = iAmInitiator ? trade.initiator_sticker_number : trade.responder_sticker_number
+              const myOfferTeam = iAmInitiator ? trade.initiator_sticker_team : trade.responder_sticker_team
+              const myOfferName = iAmInitiator ? trade.initiator_sticker_name : trade.responder_sticker_name
+              const theirOfferNum = iAmInitiator ? trade.responder_sticker_number : trade.initiator_sticker_number
+              const theirOfferTeam = iAmInitiator ? trade.responder_sticker_team : trade.initiator_sticker_team
+              const theirOfferName = iAmInitiator ? trade.responder_sticker_name : trade.initiator_sticker_name
               const otherName = iAmInitiator ? trade.responder_username : trade.initiator_username
               const isSelected = selected.has(trade.id)
               const canSelect = tab !== 'history'
+
+              const stickerLabel = (team: string, num: number, name: string) => {
+                if (!team || num === 0) return '?'
+                return name ? `${name} (${team} #${num})` : `${team} #${num}`
+              }
 
               return (
                 <div
@@ -477,22 +493,25 @@ export default function Trades() {
                       </div>
 
                       {/* Sticker exchange */}
-                      <div className="flex items-center gap-1.5 text-xs mb-2">
-                        <span style={{ color: 'var(--text-muted)' }}>You give</span>
-                        <span
-                          className="font-bold px-2 py-0.5 rounded-lg"
-                          style={{ background: 'var(--border)', color: 'var(--text)', fontFamily: 'var(--font-display)', fontSize: '0.85rem' }}
-                        >
-                          {myOffer > 0 ? `#${myOffer}` : '?'}
-                        </span>
-                        <span style={{ color: 'var(--gold)', fontSize: '0.9rem' }}>⇄</span>
-                        <span style={{ color: 'var(--text-muted)' }}>You get</span>
-                        <span
-                          className="font-bold px-2 py-0.5 rounded-lg"
-                          style={{ background: 'var(--border)', color: 'var(--text)', fontFamily: 'var(--font-display)', fontSize: '0.85rem' }}
-                        >
-                          {theirOffer > 0 ? `#${theirOffer}` : '?'}
-                        </span>
+                      <div className="flex flex-col gap-1 mb-2">
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <span style={{ color: 'var(--text-muted)', minWidth: '50px' }}>You give</span>
+                          <span
+                            className="font-semibold px-2 py-0.5 rounded-lg truncate"
+                            style={{ background: 'var(--border)', color: 'var(--text)', fontSize: '0.78rem', maxWidth: '180px' }}
+                          >
+                            {stickerLabel(myOfferTeam, myOfferNum, myOfferName)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <span style={{ color: 'var(--text-muted)', minWidth: '50px' }}>You get</span>
+                          <span
+                            className="font-semibold px-2 py-0.5 rounded-lg truncate"
+                            style={{ background: 'var(--border)', color: 'var(--text)', fontSize: '0.78rem', maxWidth: '180px' }}
+                          >
+                            {stickerLabel(theirOfferTeam, theirOfferNum, theirOfferName)}
+                          </span>
+                        </div>
                       </div>
 
                       {/* Date */}

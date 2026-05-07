@@ -28,7 +28,11 @@ export interface Trade {
   initiator_id: string
   responder_id: string
   initiator_sticker_number: number
+  initiator_sticker_team: string
+  initiator_sticker_name: string
   responder_sticker_number: number
+  responder_sticker_team: string
+  responder_sticker_name: string
   status: 'pending' | 'accepted' | 'completed' | 'rejected' | 'canceled'
   created_at: string
   updated_at: string
