@@ -257,16 +257,16 @@ export default function Trades() {
   const rejectOne = (trade: TradeRow) =>
     withConfirm('Reject this trade?', () =>
       runSingle(async t => {
-        await supabase.from('trades').update({ status: 'rejected' }).eq('id', t.id)
-        return null
+        const { error } = await supabase.from('trades').update({ status: 'rejected' }).eq('id', t.id)
+        return error ? `Could not reject: ${error.message}` : null
       }, trade)
     )
 
   const cancelOne = (trade: TradeRow) =>
     withConfirm('Cancel this trade?', () =>
       runSingle(async t => {
-        await supabase.from('trades').update({ status: 'canceled' }).eq('id', t.id)
-        return null
+        const { error } = await supabase.from('trades').update({ status: 'canceled' }).eq('id', t.id)
+        return error ? `Could not cancel: ${error.message}` : null
       }, trade)
     )
 
@@ -297,14 +297,20 @@ export default function Trades() {
   const bulkReject = () => {
     const n = selected.size
     withConfirm(`Reject ${n} trade${n !== 1 ? 's' : ''}?`, () =>
-      runBulk(async t => { await supabase.from('trades').update({ status: 'rejected' }).eq('id', t.id); return null })
+      runBulk(async t => {
+        const { error } = await supabase.from('trades').update({ status: 'rejected' }).eq('id', t.id)
+        return error ? error.message : null
+      })
     )
   }
 
   const bulkCancel = () => {
     const n = selected.size
     withConfirm(`Cancel ${n} trade${n !== 1 ? 's' : ''}?`, () =>
-      runBulk(async t => { await supabase.from('trades').update({ status: 'canceled' }).eq('id', t.id); return null })
+      runBulk(async t => {
+        const { error } = await supabase.from('trades').update({ status: 'canceled' }).eq('id', t.id)
+        return error ? error.message : null
+      })
     )
   }
 
