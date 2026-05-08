@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/Button'
 import { getUserStickerInfo, calculateMatchScore, calculateDistance } from '@/lib/matching-algorithm'
-import { MatchScore } from '@/lib/types'
+import { MatchScore, TradePair } from '@/lib/types'
+import { ProposeTradeModal } from '@/components/trades/ProposeTradeModal'
 import Link from 'next/link'
 
 interface UserProfileData {
@@ -35,7 +36,7 @@ export default function UserProfilePage() {
   const [matchScore, setMatchScore] = useState<MatchScore | null>(null)
   const [distanceKm, setDistanceKm] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
-  const [startingTrade, setStartingTrade] = useState(false)
+  const [proposeModal, setProposeModal] = useState(false)
 
   useEffect(() => {
     const init = async () => {
@@ -90,17 +91,25 @@ export default function UserProfilePage() {
     init()
   }, [targetUserId])
 
-  const startTrade = async () => {
+  const handleCreateTrade = async (pair: TradePair) => {
     if (!myId || !supabaseRef.current) return
-    setStartingTrade(true)
     const supabase = supabaseRef.current
     const { data } = await supabase
       .from('trades')
-      .insert({ initiator_id: myId, responder_id: targetUserId, initiator_sticker_number: 0, responder_sticker_number: 0 })
+      .insert({
+        initiator_id: myId,
+        responder_id: targetUserId,
+        initiator_sticker_number: pair.give.sticker_number,
+        initiator_sticker_team: pair.give.team,
+        initiator_sticker_name: pair.give.sticker_name,
+        responder_sticker_number: pair.receive.sticker_number,
+        responder_sticker_team: pair.receive.team,
+        responder_sticker_name: pair.receive.sticker_name,
+      })
       .select()
       .single()
+    setProposeModal(false)
     if (data) router.push(`/trades/${data.id}`)
-    setStartingTrade(false)
   }
 
   if (loading) {
@@ -201,8 +210,7 @@ export default function UserProfilePage() {
                 variant="primary"
                 size="md"
                 className="flex-1"
-                onClick={startTrade}
-                loading={startingTrade}
+                onClick={() => setProposeModal(true)}
               >
                 🔄 Trade
               </Button>
@@ -259,6 +267,15 @@ export default function UserProfilePage() {
           </div>
         )}
       </div>
+      {proposeModal && profile && myId && (
+        <ProposeTradeModal
+          myId={myId}
+          otherUserId={targetUserId}
+          otherUsername={profile.username}
+          onConfirm={handleCreateTrade}
+          onClose={() => setProposeModal(false)}
+        />
+      )}
     </AppShell>
   )
 }

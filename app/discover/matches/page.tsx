@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { createClient } from '@/lib/supabase/client'
 import { findMatches } from '@/lib/matching-algorithm'
 import { Profile, MatchResult, TradePair } from '@/lib/types'
+import { ProposeTradeModal } from '@/components/trades/ProposeTradeModal'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -14,7 +15,8 @@ export default function MatchesPage() {
   const [myProfile, setMyProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [trading, setTrading] = useState<string | null>(null)
+  const [myId, setMyId] = useState('')
+  const [proposeModal, setProposeModal] = useState<{ userId: string; username: string; initialPair?: TradePair } | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -30,6 +32,7 @@ export default function MatchesPage() {
         .single()
 
       if (!profile) { setError('Profile not found'); setLoading(false); return }
+      setMyId(user.id)
       setMyProfile(profile)
 
       if (!profile.latitude || profile.latitude === 0) {
@@ -53,15 +56,13 @@ export default function MatchesPage() {
     init()
   }, [])
 
-  const handleSmartTrade = async (otherUserId: string, pair: TradePair) => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    setTrading(otherUserId)
+  const handleCreateTrade = async (pair: TradePair) => {
+    if (!proposeModal) return
     const { data } = await supabase
       .from('trades')
       .insert({
-        initiator_id: user.id,
-        responder_id: otherUserId,
+        initiator_id: myId,
+        responder_id: proposeModal.userId,
         initiator_sticker_number: pair.give.sticker_number,
         initiator_sticker_team: pair.give.team,
         initiator_sticker_name: pair.give.sticker_name,
@@ -71,7 +72,7 @@ export default function MatchesPage() {
       })
       .select()
       .single()
-    setTrading(null)
+    setProposeModal(null)
     if (data) router.push(`/trades/${data.id}`)
   }
 
@@ -239,17 +240,18 @@ export default function MatchesPage() {
 
                   {/* Action buttons */}
                   <div className="flex flex-col gap-2">
-                    {m.bestTradePair && (
-                      <Button
-                        variant="gold"
-                        size="sm"
-                        className="w-full"
-                        loading={trading === m.profile.user_id}
-                        onClick={() => handleSmartTrade(m.profile.user_id, m.bestTradePair!)}
-                      >
-                        ⚡ Trade These
-                      </Button>
-                    )}
+                    <Button
+                      variant="gold"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setProposeModal({
+                        userId: m.profile.user_id,
+                        username: m.profile.username,
+                        initialPair: m.bestTradePair,
+                      })}
+                    >
+                      ⚡ Propose Trade
+                    </Button>
                     <div className="flex gap-2">
                       <Link href={`/profile/messages/${m.profile.user_id}`} className="flex-1">
                         <button
@@ -275,6 +277,16 @@ export default function MatchesPage() {
           </>
         )}
       </div>
+      {proposeModal && (
+        <ProposeTradeModal
+          myId={myId}
+          otherUserId={proposeModal.userId}
+          otherUsername={proposeModal.username}
+          initialPair={proposeModal.initialPair}
+          onConfirm={handleCreateTrade}
+          onClose={() => setProposeModal(null)}
+        />
+      )}
     </AppShell>
   )
 }

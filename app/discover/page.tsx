@@ -7,17 +7,20 @@ import { Badge } from '@/components/ui/Badge'
 import { createClient } from '@/lib/supabase/client'
 import { buildMatchResults } from '@/lib/matching'
 import { calculateDistance } from '@/lib/matching-algorithm'
-import { Profile, MatchResult } from '@/lib/types'
+import { Profile, MatchResult, TradePair } from '@/lib/types'
+import { ProposeTradeModal } from '@/components/trades/ProposeTradeModal'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function Discover() {
   const [matches, setMatches] = useState<MatchResult[]>([])
   const [myProfile, setMyProfile] = useState<Profile | null>(null)
+  const [myId, setMyId] = useState('')
   const [radius, setRadius] = useState(50)
   const [loading, setLoading] = useState(true)
   const [locating, setLocating] = useState(false)
   const [error, setError] = useState('')
+  const [proposeModal, setProposeModal] = useState<{ userId: string; username: string } | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -38,6 +41,7 @@ export default function Discover() {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+      setMyId(user.id)
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -89,14 +93,23 @@ export default function Discover() {
     }
   }
 
-  const startTrade = async (otherUserId: string) => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+  const handleCreateTrade = async (pair: TradePair) => {
+    if (!proposeModal || !myId) return
     const { data } = await supabase
       .from('trades')
-      .insert({ initiator_id: user.id, responder_id: otherUserId, initiator_sticker_number: 0, responder_sticker_number: 0 })
+      .insert({
+        initiator_id: myId,
+        responder_id: proposeModal.userId,
+        initiator_sticker_number: pair.give.sticker_number,
+        initiator_sticker_team: pair.give.team,
+        initiator_sticker_name: pair.give.sticker_name,
+        responder_sticker_number: pair.receive.sticker_number,
+        responder_sticker_team: pair.receive.team,
+        responder_sticker_name: pair.receive.sticker_name,
+      })
       .select()
       .single()
+    setProposeModal(null)
     if (data) router.push(`/trades/${data.id}`)
   }
 
@@ -219,7 +232,7 @@ export default function Discover() {
                         💬 Message
                       </button>
                     </Link>
-                    <Button variant="primary" size="sm" onClick={() => startTrade(m.profile.user_id)} className="flex-1">
+                    <Button variant="primary" size="sm" onClick={() => setProposeModal({ userId: m.profile.user_id, username: m.profile.username })} className="flex-1">
                       🔄 Trade
                     </Button>
                   </div>
@@ -229,6 +242,15 @@ export default function Discover() {
           </div>
         )}
       </div>
+      {proposeModal && myId && (
+        <ProposeTradeModal
+          myId={myId}
+          otherUserId={proposeModal.userId}
+          otherUsername={proposeModal.username}
+          onConfirm={handleCreateTrade}
+          onClose={() => setProposeModal(null)}
+        />
+      )}
     </AppShell>
   )
 }

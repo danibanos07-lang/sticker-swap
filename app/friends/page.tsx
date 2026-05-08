@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { AppShell } from '@/components/layout/AppShell'
 import { createClient } from '@/lib/supabase/client'
-import { Profile } from '@/lib/types'
+import { Profile, TradePair } from '@/lib/types'
 import { SearchFriend } from '@/components/discover/SearchFriend'
+import { ProposeTradeModal } from '@/components/trades/ProposeTradeModal'
 
 type Tab = 'friends' | 'find'
 
@@ -21,6 +22,7 @@ export default function FriendsPage() {
   const [friends, setFriends] = useState<FriendEntry[]>([])
   const [pendingReceived, setPendingReceived] = useState<FriendEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const [proposeModal, setProposeModal] = useState<{ userId: string; username: string } | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -87,14 +89,23 @@ export default function FriendsPage() {
     setFriends(prev => [...prev, { profile, requestId }])
   }
 
-  const startTrade = async (otherUserId: string) => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+  const handleCreateTrade = async (pair: TradePair) => {
+    if (!proposeModal || !currentUserId) return
     const { data } = await supabase
       .from('trades')
-      .insert({ initiator_id: user.id, responder_id: otherUserId, initiator_sticker_number: 0, responder_sticker_number: 0 })
+      .insert({
+        initiator_id: currentUserId,
+        responder_id: proposeModal.userId,
+        initiator_sticker_number: pair.give.sticker_number,
+        initiator_sticker_team: pair.give.team,
+        initiator_sticker_name: pair.give.sticker_name,
+        responder_sticker_number: pair.receive.sticker_number,
+        responder_sticker_team: pair.receive.team,
+        responder_sticker_name: pair.receive.sticker_name,
+      })
       .select()
       .single()
+    setProposeModal(null)
     if (data) router.push(`/trades/${data.id}`)
   }
 
@@ -224,7 +235,7 @@ export default function FriendsPage() {
                       </button>
                     </Link>
                     <button
-                      onClick={() => startTrade(profile.user_id)}
+                      onClick={() => setProposeModal({ userId: profile.user_id, username: profile.username })}
                       className="flex-1 py-2 rounded-xl text-xs font-bold text-white"
                       style={{ background: 'var(--primary)' }}
                     >
@@ -236,6 +247,15 @@ export default function FriendsPage() {
             </>
           )}
         </div>
+      )}
+      {proposeModal && currentUserId && (
+        <ProposeTradeModal
+          myId={currentUserId}
+          otherUserId={proposeModal.userId}
+          otherUsername={proposeModal.username}
+          onConfirm={handleCreateTrade}
+          onClose={() => setProposeModal(null)}
+        />
       )}
     </AppShell>
   )
