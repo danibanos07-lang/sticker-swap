@@ -29,12 +29,28 @@ export function ScanPagePanel({ teamKey, onConfirm }: Props) {
 
     try {
       const { createWorker } = await import('tesseract.js')
-      const worker = await createWorker('eng')
+      const worker = await createWorker('eng', 1, {
+        langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+        corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core-simd-lstm.wasm.js',
+        logger: () => {},
+      })
+
+      await worker.setParameters({
+        // Only recognize uppercase letters and digits — filters out noise
+        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+        // PSM 11: sparse text — best for codes scattered around a page
+        tessedit_pageseg_mode: 11 as unknown as import('tesseract.js').PSM,
+      })
+
       const { data } = await worker.recognize(file)
       await worker.terminate()
 
       const upperText = data.text.toUpperCase()
-      const rawMatches = [...upperText.matchAll(/\b([A-Z]{2,4}\d{1,2})\b/g)].map(m => m[1])
+
+      // Handle OCR inserting a space between the letter prefix and the number,
+      // e.g. "MEX 14" or "MEX14". Both are matched and normalised.
+      const rawMatches = [...upperText.matchAll(/\b([A-Z]{2,4})\s?(\d{1,2})\b/g)]
+        .map(m => `${m[1]}${m[2]}`)
 
       const validCodes = new Set(teamStickers.map(s => s.code))
       const detected = [...new Set(
@@ -48,7 +64,8 @@ export function ScanPagePanel({ teamKey, onConfirm }: Props) {
       setMissingCodes(missing)
       setSelected(new Set(missing))
       setScanState(detected.length === 0 ? 'error' : 'results')
-    } catch {
+    } catch (err) {
+      console.error('Scan error:', err)
       setScanState('error')
     }
   }
