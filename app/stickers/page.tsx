@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { createClient } from '@/lib/supabase/client'
 import { STICKER_DATA, TEAM_NAMES, getTeamPrefix } from '@/lib/stickerData'
 import { Input } from '@/components/ui/Input'
+import { ScanPagePanel } from '@/components/stickers/ScanPagePanel'
 
 interface UserSticker {
   id: string
@@ -165,6 +166,25 @@ export default function Stickers() {
     setBatching(false)
   }
 
+  const handleScanConfirm = async (codes: string[]) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const teamStickers = STICKER_DATA[batchTeamKey] || []
+    const rows = codes.map(code => {
+      const sticker = teamStickers.find(s => s.code === code)!
+      const num = parseInt(code.replace(/\D/g, ''))
+      return {
+        user_id: user.id,
+        sticker_number: num,
+        sticker_name: sticker.name,
+        team: batchTeamKey,
+        status: 'need' as const,
+      }
+    })
+    await supabase.from('user_stickers').upsert(rows, { onConflict: 'user_id,team,sticker_number' })
+    await load()
+  }
+
   const tabs: { key: ActiveTab; label: string }[] = [
     { key: 'all', label: `All (${stickers.length})` },
     { key: 'have', label: `Have (${stickers.filter(s => s.status === 'have' || s.status === 'have_duplicate').length})` },
@@ -199,6 +219,28 @@ export default function Stickers() {
 
       {tab === 'add' ? (
         <div className="p-4 flex flex-col gap-4">
+
+          {/* ── Scan Page ── */}
+          <div className="card p-4">
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--text)', marginBottom: '0.25rem' }}>
+              SCAN ALBUM PAGE
+            </h3>
+            <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
+              Point your camera at a team page in your physical album. The app detects which stickers are missing and lets you add them to your Need list.
+            </p>
+            <div className="flex flex-col gap-1 mb-3">
+              <label className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>Team page to scan</label>
+              <select
+                className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none"
+                style={selectStyle}
+                value={batchTeamKey}
+                onChange={e => handleBatchTeamChange(e.target.value)}
+              >
+                {TEAM_NAMES.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+            <ScanPagePanel teamKey={batchTeamKey} onConfirm={handleScanConfirm} />
+          </div>
 
           {/* ── Single Add ── */}
           <div className="card p-4">
