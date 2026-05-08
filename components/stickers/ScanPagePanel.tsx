@@ -31,7 +31,6 @@ export function ScanPagePanel({ teamKey, onConfirm }: Props) {
       const { createWorker } = await import('tesseract.js')
       const worker = await createWorker('eng', 1, {
         langPath: 'https://tessdata.projectnaptha.com/4.0.0',
-        corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core-simd-lstm.wasm.js',
         logger: () => {},
       })
 
