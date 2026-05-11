@@ -62,7 +62,7 @@ export const AppShell: React.FC<AppShellProps> = ({
           boxShadow: 'var(--shadow)',
         }}
       >
-        <div className="flex items-center" style={{ borderRadius: 10, overflow: 'hidden', background: 'white' }}>
+        <div className="flex items-center">
           <Image
             src="/logo.png"
             alt="StickerSwap"
