@@ -8,22 +8,22 @@
   --font-display: var(--font-fredoka), 'Fredoka', sans-serif;
   --font-body: var(--font-outfit), 'Outfit', sans-serif;
 
-  /* Dark charcoal default */
-  --bg: #1C1C1C;
-  --bg-card: #252525;
-  --bg-input: #2E2E2E;
-  --text: #FFFFFF;
-  --text-muted: #909090;
-  --border: #333333;
+  /* Light mode — white background, gold + green accents */
+  --bg: #FFFFFF;
+  --bg-card: #F7F7F7;
+  --bg-input: #F0F0F0;
+  --text: #1A1A1A;
+  --text-muted: #666666;
+  --border: #E0E0E0;
   --primary: #C9A84C;
   --primary-dark: #A8853C;
   --primary-light: #DBBE6E;
   --gold: #C9A84C;
   --gold-dark: #A8853C;
   --green: #00C853;
-  --nav-bg: #141414;
-  --shadow: 0 2px 12px rgba(0,0,0,0.5);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.7);
+  --nav-bg: #FFFFFF;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
 }
 
 [data-theme="dark"] {
