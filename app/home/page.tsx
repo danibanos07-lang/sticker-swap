@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { BookOpen, Compass, ArrowLeftRight, User, CheckCircle2, HelpCircle } from 'lucide-react'
 
 export default function Home() {
   const [username, setUsername] = useState('')
@@ -34,11 +35,17 @@ export default function Home() {
     load()
   }, [])
 
+  const statItems = [
+    { label: 'Have', value: stats.have, color: 'var(--green)', Icon: CheckCircle2 },
+    { label: 'Need', value: stats.need, color: 'var(--primary)', Icon: HelpCircle },
+    { label: 'Trades', value: stats.trades, color: 'var(--gold)', Icon: ArrowLeftRight },
+  ]
+
   const quickLinks = [
-    { href: '/stickers', icon: '📋', label: 'MY ALBUM', sub: `${stats.have} stickers tracked`, color: 'var(--primary)' },
-    { href: '/discover', icon: '🔍', label: 'DISCOVER', sub: 'Find traders nearby', color: 'var(--green)' },
-    { href: '/trades', icon: '🔄', label: 'MY TRADES', sub: `${stats.trades} active`, color: 'var(--gold)' },
-    { href: '/profile', icon: '👤', label: 'PROFILE', sub: 'Settings & location', color: '#6366F1' },
+    { href: '/stickers', Icon: BookOpen, label: 'My Album', sub: `${stats.have} stickers tracked` },
+    { href: '/discover', Icon: Compass, label: 'Discover', sub: 'Find traders nearby' },
+    { href: '/trades', Icon: ArrowLeftRight, label: 'My Trades', sub: `${stats.trades} active` },
+    { href: '/profile', Icon: User, label: 'Profile', sub: 'Settings & location' },
   ]
 
   return (
@@ -49,23 +56,18 @@ export default function Home() {
           className="rounded-2xl p-5 mb-6 relative overflow-hidden"
           style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #1A1A2E 100%)' }}
         >
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-6xl opacity-20">⚽</div>
           <p className="text-white/70 text-sm mb-1" style={{ fontFamily: 'var(--font-body)' }}>Welcome back,</p>
           <h2 className="text-white text-3xl" style={{ fontFamily: 'var(--font-display)' }}>
-            {username || 'Collector'}!
+            {username || 'Collector'}
           </h2>
-          <p className="text-white/60 text-xs mt-1">FIFA World Cup 2026™ Album</p>
+          <p className="text-white/50 text-xs mt-1">FIFA World Cup 2026™ Album</p>
         </div>
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-3 mb-6">
-          {[
-            { label: 'Have', value: stats.have, color: 'var(--green)', icon: '✅' },
-            { label: 'Need', value: stats.need, color: 'var(--primary)', icon: '❓' },
-            { label: 'Trades', value: stats.trades, color: 'var(--gold)', icon: '🔄' },
-          ].map(stat => (
+          {statItems.map(stat => (
             <div key={stat.label} className="card p-3 text-center">
-              <div className="text-xl mb-0.5">{stat.icon}</div>
+              <stat.Icon size={18} style={{ color: stat.color, margin: '0 auto 4px' }} strokeWidth={2} />
               <div className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)', color: stat.color }}>
                 {stat.value}
               </div>
@@ -75,29 +77,26 @@ export default function Home() {
         </div>
 
         {/* Quick links */}
-        <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-body)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+        <h3 className="text-xs font-semibold mb-3 uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
           Quick Access
         </h3>
         <div className="grid grid-cols-2 gap-3">
           {quickLinks.map((link, i) => (
             <Link key={link.href} href={link.href}>
-              <div
-                className={`card p-4 active:scale-95 transition-transform cursor-pointer fade-up fade-up-delay-${i + 1}`}
-                style={{ borderLeft: `4px solid ${link.color}` }}
-              >
-                <div className="text-3xl mb-2">{link.icon}</div>
-                <div className="font-bold text-sm" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)', fontSize: '1rem' }}>
+              <div className={`card p-4 active:scale-95 transition-transform cursor-pointer fade-up fade-up-delay-${i + 1}`}>
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
+                  style={{ background: 'rgba(200,16,46,0.08)' }}
+                >
+                  <link.Icon size={18} style={{ color: 'var(--primary)' }} strokeWidth={2} />
+                </div>
+                <div className="font-semibold text-sm" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)', fontSize: '0.95rem' }}>
                   {link.label}
                 </div>
                 <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{link.sub}</div>
               </div>
             </Link>
           ))}
-        </div>
-
-        {/* WC2026 badge */}
-        <div className="text-center mt-8">
-          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>🏆 Panini FIFA World Cup 2026™ Official Album</span>
         </div>
       </div>
     </AppShell>

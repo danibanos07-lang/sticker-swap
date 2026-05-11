@@ -62,8 +62,8 @@ export const AppShell: React.FC<AppShellProps> = ({
         }}
       >
         <div className="flex items-center gap-2">
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--primary)' }}>
-            ⚽ STICKERSWAP
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--primary)', letterSpacing: '0.04em' }}>
+            STICKERSWAP
           </span>
         </div>
         <div className="flex items-center gap-2">

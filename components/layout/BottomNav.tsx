@@ -1,14 +1,15 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { House, BookOpen, Compass, Users, ArrowLeftRight, User } from 'lucide-react'
 
 const navItems = [
-  { label: 'Home', href: '/home', icon: '🏠' },
-  { label: 'Album', href: '/stickers', icon: '📋' },
-  { label: 'Discover', href: '/discover', icon: '🌍' },
-  { label: 'Friends', href: '/friends', icon: '👥' },
-  { label: 'Trades', href: '/trades', icon: '🔄' },
-  { label: 'Profile', href: '/profile', icon: '👤' },
+  { label: 'Home', href: '/home', Icon: House },
+  { label: 'Album', href: '/stickers', Icon: BookOpen },
+  { label: 'Discover', href: '/discover', Icon: Compass },
+  { label: 'Friends', href: '/friends', Icon: Users },
+  { label: 'Trades', href: '/trades', Icon: ArrowLeftRight },
+  { label: 'Profile', href: '/profile', Icon: User },
 ]
 
 export const BottomNav: React.FC = () => {
@@ -29,12 +30,10 @@ export const BottomNav: React.FC = () => {
           <Link
             key={item.href}
             href={item.href}
-            className="flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-all active:scale-90"
+            className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all active:scale-90"
             style={{ color: active ? 'var(--primary)' : 'var(--text-muted)' }}
           >
-            <span className={`text-xl transition-transform ${active ? 'scale-110' : ''}`}>
-              {item.icon}
-            </span>
+            <item.Icon size={20} strokeWidth={active ? 2.5 : 1.75} />
             <span
               className="font-semibold"
               style={{ fontFamily: 'var(--font-body)', fontSize: '0.6rem' }}

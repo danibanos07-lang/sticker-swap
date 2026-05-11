@@ -46,7 +46,7 @@ export default function Home() {
       <div className="w-full max-w-xs flex flex-col gap-3 fade-up fade-up-delay-3">
         <Link href="/signup" className="w-full">
           <Button variant="gold" size="lg" className="w-full text-xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: '0.05em' }}>
-            🚀 GET STARTED
+            GET STARTED
           </Button>
         </Link>
         <Link href="/login" className="w-full">
