@@ -2,6 +2,7 @@
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
+import { Trophy } from 'lucide-react'
 
 export default function Home() {
   useEffect(() => {
@@ -19,9 +20,9 @@ export default function Home() {
         backgroundSize: '40px 40px'
       }} />
 
-      {/* Trophy emoji */}
-      <div className="text-8xl mb-4 fade-up" style={{ filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.3))' }}>
-        🏆
+      {/* Trophy icon */}
+      <div className="mb-6 fade-up" style={{ filter: 'drop-shadow(0 8px 32px rgba(201,168,76,0.4))' }}>
+        <Trophy size={80} color="#C9A84C" strokeWidth={1.5} />
       </div>
 
       {/* Title */}

@@ -8,40 +8,40 @@
   --font-display: var(--font-fredoka), 'Fredoka', sans-serif;
   --font-body: var(--font-outfit), 'Outfit', sans-serif;
 
-  /* Light mode */
-  --bg: #F5F3EE;
-  --bg-card: #FFFFFF;
-  --bg-input: #FFFFFF;
-  --text: #1A1A2E;
-  --text-muted: #6B7280;
-  --border: #E5E7EB;
-  --primary: #C8102E;
-  --primary-dark: #9B0D23;
-  --primary-light: #FF4D6A;
-  --gold: #F5A623;
-  --gold-dark: #D4891A;
-  --green: #00843D;
-  --nav-bg: #FFFFFF;
-  --shadow: 0 2px 12px rgba(0,0,0,0.08);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  /* Dark charcoal default */
+  --bg: #1C1C1C;
+  --bg-card: #252525;
+  --bg-input: #2E2E2E;
+  --text: #FFFFFF;
+  --text-muted: #909090;
+  --border: #333333;
+  --primary: #C9A84C;
+  --primary-dark: #A8853C;
+  --primary-light: #DBBE6E;
+  --gold: #C9A84C;
+  --gold-dark: #A8853C;
+  --green: #00C853;
+  --nav-bg: #141414;
+  --shadow: 0 2px 12px rgba(0,0,0,0.5);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.7);
 }
 
 [data-theme="dark"] {
-  --bg: #0F0F1A;
-  --bg-card: #1A1A2E;
-  --bg-input: #252540;
-  --text: #F0EDE8;
-  --text-muted: #9CA3AF;
-  --border: #2D2D4E;
-  --primary: #E8192F;
-  --primary-dark: #C8102E;
-  --primary-light: #FF6B80;
-  --gold: #F5A623;
-  --gold-dark: #D4891A;
-  --green: #00A84D;
-  --nav-bg: #1A1A2E;
-  --shadow: 0 2px 12px rgba(0,0,0,0.4);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+  --bg: #0F0F0F;
+  --bg-card: #1A1A1A;
+  --bg-input: #222222;
+  --text: #FFFFFF;
+  --text-muted: #707070;
+  --border: #2A2A2A;
+  --primary: #C9A84C;
+  --primary-dark: #A8853C;
+  --primary-light: #DBBE6E;
+  --gold: #C9A84C;
+  --gold-dark: #A8853C;
+  --green: #00C853;
+  --nav-bg: #0A0A0A;
+  --shadow: 0 2px 12px rgba(0,0,0,0.7);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.85);
 }
 
 *, *::before, *::after {
@@ -104,7 +104,7 @@ h1, h2, h3, .display {
 
 /* Gradient hero */
 .hero-gradient {
-  background: linear-gradient(135deg, #C8102E 0%, #1A1A2E 60%, #00843D 100%);
+  background: linear-gradient(160deg, #141414 0%, #0a0a0a 100%);
 }
 
 /* Trophy shimmer */
@@ -114,7 +114,7 @@ h1, h2, h3, .display {
 }
 
 .gold-text {
-  background: linear-gradient(90deg, #F5A623, #FFD700, #F5A623, #D4891A);
+  background: linear-gradient(90deg, #C9A84C, #E8C870, #C9A84C, #A8853C);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

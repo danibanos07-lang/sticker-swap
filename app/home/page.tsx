@@ -54,7 +54,7 @@ export default function Home() {
         {/* Welcome banner */}
         <div
           className="rounded-2xl p-5 mb-6 relative overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #1A1A2E 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #2A1F00 0%, #0F0F0F 100%)' }}
         >
           <p className="text-white/70 text-sm mb-1" style={{ fontFamily: 'var(--font-body)' }}>Welcome back,</p>
           <h2 className="text-white text-3xl" style={{ fontFamily: 'var(--font-display)' }}>
@@ -86,7 +86,7 @@ export default function Home() {
               <div className={`card p-4 active:scale-95 transition-transform cursor-pointer fade-up fade-up-delay-${i + 1}`}>
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
-                  style={{ background: 'rgba(200,16,46,0.08)' }}
+                  style={{ background: 'rgba(201,168,76,0.10)' }}
                 >
                   <link.Icon size={18} style={{ color: 'var(--primary)' }} strokeWidth={2} />
                 </div>
