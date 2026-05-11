@@ -1,5 +1,6 @@
 'use client'
 import React, { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { BottomNav } from './BottomNav'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { OnboardingTutorial } from '@/components/tutorial/OnboardingTutorial'
@@ -61,10 +62,15 @@ export const AppShell: React.FC<AppShellProps> = ({
           boxShadow: 'var(--shadow)',
         }}
       >
-        <div className="flex items-center gap-2">
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--primary)', letterSpacing: '0.04em' }}>
-            STICKERSWAP
-          </span>
+        <div className="flex items-center" style={{ borderRadius: 10, overflow: 'hidden', background: 'white' }}>
+          <Image
+            src="/logo.png"
+            alt="StickerSwap"
+            width={148}
+            height={40}
+            style={{ objectFit: 'contain', display: 'block' }}
+            priority
+          />
         </div>
         <div className="flex items-center gap-2">
           {headerRight}
