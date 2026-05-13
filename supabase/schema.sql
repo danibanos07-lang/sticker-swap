@@ -27,7 +27,7 @@ create table if not exists public.user_stickers (
   team text not null default '',
   status text not null default 'have' check (status in ('have', 'need', 'have_duplicate')),
   created_at timestamptz default now() not null,
-  unique(user_id, sticker_number)
+  unique(user_id, team, sticker_number)
 );
 
 -- TRADES

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { STICKER_DATA } from '@/lib/stickerData'
 import Link from 'next/link'
 
 export default function SignUp() {
@@ -67,6 +68,21 @@ export default function SignUp() {
       })
 
       if (signInError) throw signInError
+
+      // Initialize the full album as "need" for this new user
+      const allStickers = Object.entries(STICKER_DATA).flatMap(([teamKey, stickers]) =>
+        stickers.map(s => ({
+          user_id: data.user.id,
+          sticker_number: parseInt(s.code.replace(/\D/g, '')),
+          sticker_name: s.name,
+          team: teamKey,
+          status: 'need' as const,
+        }))
+      )
+      const CHUNK = 500
+      for (let i = 0; i < allStickers.length; i += CHUNK) {
+        await supabase.from('user_stickers').insert(allStickers.slice(i, i + CHUNK))
+      }
 
       window.location.href = '/home'
     } catch (err: any) {
